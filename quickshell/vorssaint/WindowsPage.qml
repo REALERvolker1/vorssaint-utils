@@ -83,6 +83,7 @@ Item {
 
                 Label {
                     text: "Workspace on " + root.screen.name
+                    textFormat: Text.PlainText
                     color: "#f1f3f7"
                     font.bold: true
                 }
@@ -114,6 +115,7 @@ Item {
 
                 Label {
                     text: root.statusText
+                    textFormat: Text.PlainText
                     visible: text.length > 0
                     color: "#aeb4c0"
                     wrapMode: Text.Wrap
@@ -166,6 +168,7 @@ Item {
                         Label {
                             Layout.fillWidth: true
                             text: row.modelData.title || "(untitled)"
+                            textFormat: Text.PlainText
                             color: "#f1f3f7"
                             elide: Text.ElideRight
                         }
@@ -173,6 +176,7 @@ Item {
                         Label {
                             Layout.fillWidth: true
                             text: row.modelData.appId || "unknown application"
+                            textFormat: Text.PlainText
                             color: "#858b98"
                             font.pixelSize: 11
                             elide: Text.ElideRight
