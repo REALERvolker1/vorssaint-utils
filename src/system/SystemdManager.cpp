@@ -7,7 +7,6 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QProcess>
-#include <QRegularExpression>
 
 #include <algorithm>
 
@@ -68,6 +67,10 @@ QJsonObject resultJson(const CommandResult &result) {
     };
 }
 
+QStringList fields(const QString &line) {
+    return line.simplified().split(QLatin1Char(' '), Qt::SkipEmptyParts);
+}
+
 } // namespace
 
 QJsonArray SystemdManager::collect(const QString &scope, QString *error) const {
@@ -94,19 +97,18 @@ QJsonArray SystemdManager::collect(const QString &scope, QString *error) const {
              << QStringLiteral("--no-pager")
              << QStringLiteral("--plain");
 
-    const CommandResult files = runCommand(QStringLiteral("systemctl"), fileArgs);
-    if (files.exitCode != 0 && error)
-        *error = files.err;
+    const CommandResult fileResult = runCommand(QStringLiteral("systemctl"), fileArgs);
+    if (fileResult.exitCode != 0 && error)
+        *error = fileResult.err;
 
-    const QRegularExpression fileRe(QStringLiteral(R"(^(S+)s+(S+)(?:s+S+)?$)"));
-    for (const QString &line : files.out.split(QLatin1Char('\n'), Qt::SkipEmptyParts)) {
-        const auto match = fileRe.match(line.trimmed());
-        if (!match.hasMatch())
+    for (const QString &line : fileResult.out.split(QLatin1Char('\n'), Qt::SkipEmptyParts)) {
+        const QStringList parts = fields(line);
+        if (parts.size() < 2)
             continue;
 
         Unit unit;
-        unit.name = match.captured(1);
-        unit.fileState = match.captured(2);
+        unit.name = parts.at(0);
+        unit.fileState = parts.at(1);
         units.insert(unit.name, unit);
     }
 
@@ -119,20 +121,23 @@ QJsonArray SystemdManager::collect(const QString &scope, QString *error) const {
              << QStringLiteral("--plain");
 
     const CommandResult loaded = runCommand(QStringLiteral("systemctl"), unitArgs);
-    const QRegularExpression unitRe(
-        QStringLiteral(R"(^(S+)s+(S+)s+(S+)s+(S+)s*(.*)$)"));
+    if (loaded.exitCode != 0 && error && error->isEmpty())
+        *error = loaded.err;
 
     for (const QString &line : loaded.out.split(QLatin1Char('\n'), Qt::SkipEmptyParts)) {
-        const auto match = unitRe.match(line.trimmed());
-        if (!match.hasMatch())
+        const QStringList parts = fields(line);
+        if (parts.size() < 4)
             continue;
 
-        Unit unit = units.value(match.captured(1));
-        unit.name = match.captured(1);
-        unit.loadState = match.captured(2);
-        unit.activeState = match.captured(3);
-        unit.subState = match.captured(4);
-        unit.description = match.captured(5).trimmed();
+        Unit unit = units.value(parts.at(0));
+        unit.name = parts.at(0);
+        unit.loadState = parts.at(1);
+        unit.activeState = parts.at(2);
+        unit.subState = parts.at(3);
+
+        if (parts.size() > 4)
+            unit.description = parts.mid(4).join(QLatin1Char(' '));
+
         units.insert(unit.name, unit);
     }
 
