@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, linux-hyprland-quickshell-port]
   pull_request:
 
 permissions:
@@ -13,48 +13,31 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  compatibility:
-    name: Swift 6.0.3 compatibility
-    runs-on: macos-15
-    timeout-minutes: 30
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-
-      - name: Verify toolchain
-        run: |
-          swiftc --version | grep -F "Apple Swift version 6.0.3"
-          test "$(xcrun --sdk macosx --show-sdk-version)" = "15.2"
-
-      - name: Build
-        run: ./build.sh
-
-      - name: Selftest
-        run: ./build/Vorssaint --selftest
-
-      - name: Unit tests
-        run: ./build.sh --test
-
   build:
-    name: Build & selftest
-    runs-on: macos-26
-    timeout-minutes: 30
+    name: Linux C++ build and tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
 
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ qt6-base-dev
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DBUILD_TESTING=ON
+
       - name: Build
-        run: ./build.sh
+        run: cmake --build build
 
-      - name: Selftest
-        run: ./build/Vorssaint --selftest
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
 
-      - name: Package DMG
-        run: ./Tools/make-dmg.sh
-
-      - name: Unit tests
-        run: ./build.sh --test
+      - name: Backend smoke test
+        run: |
+          ./build/vorssaintctl xdg
+          ./build/vorssaintctl doctor
