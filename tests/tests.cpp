@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
     assert(serviceUnit(QStringLiteral("user@1000.service")));
     assert(!serviceUnit(QStringLiteral("sshd.service;reboot")));
     assert(!serviceUnit(QStringLiteral("$(reboot).service")));
+    assert(!serviceUnit(QStringLiteral("evil`id`.service")));
     assert(!serviceUnit(QStringLiteral("evil service.service")));
     assert(!serviceUnit(QStringLiteral("evil\n.service")));
 
@@ -43,12 +44,14 @@ int main(int argc, char **argv) {
     assert(monitorName(QStringLiteral("DP-1")));
     assert(!monitorName(QStringLiteral("DP-1;reboot")));
     assert(!monitorName(QStringLiteral("DP-1 $(id)")));
+    assert(!monitorName(QStringLiteral("DP-1`id`")));
 
     int workspace = 0;
     assert(workspaceId(QStringLiteral("42"), &workspace) && workspace == 42);
     assert(!workspaceId(QStringLiteral("0")));
     assert(!workspaceId(QStringLiteral("1;reboot")));
     assert(!workspaceId(QStringLiteral("$(id)")));
+    assert(!workspaceId(QStringLiteral("`id`")));
     assert(!workspaceId(QStringLiteral("1 2")));
 
     assert(windowAddress(QStringLiteral("0xdeadBEEF")));
