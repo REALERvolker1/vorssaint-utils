@@ -7,7 +7,7 @@ import QtQuick.Layouts
 
 ShellRoot {
     Variants {
-        variants: Quickshell.screens
+        model: Quickshell.screens
 
         PanelWindow {
             id: bar
@@ -32,6 +32,7 @@ ShellRoot {
 
                 Label {
                     text: bar.modelData.name
+                    textFormat: Text.PlainText
                     color: "#858b98"
                     font.pixelSize: 11
                 }
