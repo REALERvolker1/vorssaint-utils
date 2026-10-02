@@ -127,6 +127,7 @@ Item {
             Layout.fillWidth: true
             visible: root.actionStatus.length > 0
             text: root.actionStatus
+            textFormat: Text.PlainText
             color: "#aeb4c0"
             elide: Text.ElideRight
         }
@@ -135,6 +136,7 @@ Item {
             Layout.fillWidth: true
             visible: root.errorText.length > 0
             text: root.errorText
+            textFormat: Text.PlainText
             color: "#ff8b8b"
             wrapMode: Text.Wrap
         }
@@ -167,6 +169,7 @@ Item {
                         Label {
                             Layout.fillWidth: true
                             text: serviceRow.modelData.name
+                            textFormat: Text.PlainText
                             color: "#f1f3f7"
                             font.bold: true
                             elide: Text.ElideRight
@@ -176,6 +179,7 @@ Item {
                             Layout.fillWidth: true
                             visible: !root.compactRows
                             text: serviceRow.modelData.description || "No description"
+                            textFormat: Text.PlainText
                             color: "#858b98"
                             font.pixelSize: 11
                             elide: Text.ElideRight
@@ -188,6 +192,7 @@ Item {
                                   + (serviceRow.modelData.activeState || "inactive")
                                   + " · "
                                   + (serviceRow.modelData.fileState || "unknown")
+                            textFormat: Text.PlainText
                             color: serviceRow.modelData.activeState === "active"
                                    ? "#8bd5a5" : "#aeb4c0"
                             font.pixelSize: 11
